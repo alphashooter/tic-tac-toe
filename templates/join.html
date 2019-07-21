@@ -6,14 +6,74 @@
     <script>
         window.setTimeout(
             function () {
-                window.location.href = window.location.href;
-                document.get
+                const url = window.location.href;
+                window.location.href = url;
             },
-            1000
+            5000
         );
     </script>
+    <style>
+        body {
+            background: #f0f0f0;
+            margin: 0;
+        }
+        #content {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #message {
+            background: #ffffff;
+            padding: 15px;
+            width: fit-content;
+            border-radius: 10px;
+            text-align: center;
+        }
+        #message-progress {
+            margin-top: 10px;
+        }
+        #message-progress img {
+            width: 20px;
+            height: 20px;
+        }
+        #message-progress1 {
+            animation: progress-rotate 1.5s ease-in-out 0.0s 1, progress-color 1.5s linear 0.0s 1;
+        }
+        #message-progress2 {
+            animation: progress-color 1.5s linear 0.5s 1;
+        }
+        #message-progress3 {
+            animation: progress-rotate 1.5s ease-in-out 1.0s 1, progress-color 1.5s linear 1.0s 1;
+        }
+        @keyframes progress-rotate {
+            from {
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        @keyframes progress-color {
+            from {
+            }
+            to {
+                filter: hue-rotate(360deg);
+            }
+        }
+    </style>
 </head>
 <body>
-    <h3>Ждем второго игрока...</h3>
+    <div id="content">
+        <div id="message">
+            <div>Ждем второго игрока...</div>
+            <div id="message-progress">
+                <img id="message-progress1" src="/static/cross.svg"/>
+                <img id="message-progress2" src="/static/nought.svg"/>
+                <img id="message-progress3" src="/static/cross.svg"/>
+            </div>
+        </div>
+
+    </div>
 </body>
 </html>

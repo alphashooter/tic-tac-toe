@@ -3,11 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <title>Tic-Tac-Toe</title>
+    <style>
+        body {
+            background: #f0f0f0;
+            margin: 0;
+        }
+        #content {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #form {
+            background: #ffffff;
+            padding: 15px;
+            width: fit-content;
+            border-radius: 10px;
+            text-align: center;
+        }
+        #form-submit {
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
-    <form action="/join" method="post">
-        <input name="name" type="text" placeholder="Your name..."/>
-        <button type="submit">Join</button>
-    </form>
+    <div id="content">
+        <div id="form">
+            <form id="join" action="/join" method="post">
+                <div id="form-name">
+                    <input name="name" type="text" placeholder="Enter your name..."/>
+                </div>
+                <div id="form-submit">
+                    <button type="submit">Play!</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

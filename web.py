@@ -4,7 +4,7 @@ from flask import Response, make_response
 from game import Player, Game
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 
 
 class FlaskPlayer(Player):
