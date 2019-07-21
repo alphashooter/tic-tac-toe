@@ -83,3 +83,7 @@ class Game(object):
     @property
     def grid(self) -> List[List[Optional[Player]]]:
         return self.__grid
+    
+    @property
+    def players(self):
+        return self.__players
