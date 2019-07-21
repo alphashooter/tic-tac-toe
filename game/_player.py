@@ -5,5 +5,5 @@ class Player(object):
         self.__name = name
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self.__name

@@ -2,6 +2,46 @@ from typing import Tuple, List, Optional
 from ._player import Player
 
 
+def get_winner(grid) -> Optional[Player]:
+    for row in range(3):
+        player = grid[row][0]
+        if player is None:
+            continue
+        for col in range(1, 3):
+            if grid[row][col] is not player:
+                break
+        else:
+            return player
+
+    for col in range(3):
+        player = grid[0][col]
+        if player is None:
+            continue
+        for row in range(1, 3):
+            if grid[row][col] is not player:
+                break
+        else:
+            return player
+
+    player = grid[0][0]
+    if player is not None:
+        for i in range(1, 3):
+            if grid[i][i] is not player:
+                break
+        else:
+            return player
+
+    player = grid[0][2]
+    if player is not None:
+        for i in range(1, 3):
+            if grid[i][2 - i] is not player:
+                break
+            else:
+                return player
+
+    return None
+
+
 class Game(object):
     __players: Tuple[Player, Player]
     __current: int
@@ -26,47 +66,8 @@ class Game(object):
         self.__turns += 1
         self.finish()
 
-    def finish(self):
-        self.__winner = self.get_winner()
-
-    def get_winner(self):
-        for row in range(3):
-            player = self.__grid[row][0]
-            if player is None:
-                continue
-            for col in range(1, 3):
-                if self.__grid[row][col] is not player:
-                    break
-            else:
-                return player
-
-        for col in range(3):
-            player = self.__grid[0][col]
-            if player is None:
-                continue
-            for row in range(1, 3):
-                if self.__grid[row][col] is not player:
-                    break
-            else:
-                return player
-
-        player = self.__grid[0][0]
-        if player is not None:
-            for i in range(1, 3):
-                if self.__grid[i][i] is not player:
-                    break
-            else:
-                return player
-
-        player = self.__grid[0][2]
-        if player is not None:
-            for i in range(1, 3):
-                if self.__grid[i][2 - i] is not player:
-                    break
-                else:
-                    return player
-
-        return None
+    def finish(self) -> None:
+        self.__winner = get_winner(self.__grid)
 
     @property
     def finished(self) -> bool:
