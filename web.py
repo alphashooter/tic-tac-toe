@@ -1,5 +1,5 @@
-from typing import Dict, List
-from flask import Flask, render_template, request, redirect
+from typing import Optional, Dict, List
+from flask import Flask, render_template, request, redirect, url_for
 from flask import Response, make_response
 from game import Player, Game
 
@@ -17,12 +17,16 @@ class FlaskPlayer(Player):
         self.__id = FlaskPlayer.__id
         self.__last_activity = time()
 
+    def touch(self) -> None:
+        from time import time
+        self.__last_activity = time()
+
     @property
     def expired(self):
         from time import time
         now = time()
         delta = now - self.__last_activity
-        return delta > 60
+        return delta > 30
 
     @property
     def id(self):
@@ -53,6 +57,24 @@ def enqueue(new_player: FlaskPlayer):
     return False
 
 
+def get_player() -> Optional[FlaskPlayer]:
+    try:
+        cookie = request.cookies['player_id']
+        player_id = int(cookie)
+        return players[player_id]
+    except:
+        return None
+
+
+def player_required(func):
+    def wrapper(**kwargs):
+        player = get_player()
+        if player is None:
+            return redirect(url_for('index'))
+        return func(player, **kwargs)
+    return wrapper
+
+
 @app.route('/')
 def index():
     return render_template("index.html")
@@ -61,34 +83,41 @@ def index():
 @app.route('/join', methods=['GET', 'POST'])
 def join():
     if request.method == "POST":
-        name = request.form['name']
-
-        player = FlaskPlayer(name)
-        players[player.id] = player
-
-        if enqueue(player):
-            response = redirect('/game')
-        else:
-            response: Response = make_response(render_template('join.html'))
-
-        response.set_cookie('player_id', str(player.id))
-        return response
+        return join_post()
     else:
-        player_id = int(request.cookies.get('player_id', 0))
-        player = players.get(player_id, None)
-        if not player:
-            return redirect('/')
-        else:
-            if player in games:
-                return redirect('/game')
-            else:
-                return render_template('join.html')
+        return join_get()
+
+
+def join_post():
+    player = get_player()
+    if player is not None:
+        return join_get()
+
+    name = request.form['name']
+    player = FlaskPlayer(name)
+    players[player.id] = player
+
+    if enqueue(player):
+        response = redirect(url_for('game'))
+    else:
+        response: Response = make_response(render_template('join.html'))
+
+    response.set_cookie('player_id', str(player.id))
+    return response
+
+
+@player_required
+def join_get(player: FlaskPlayer):
+    player.touch()
+    if player in games:
+        return redirect(url_for('game'))
+    else:
+        return render_template('join.html')
 
 
 @app.route("/game")
-def game():
-    player_id = int(request.cookies["player_id"])
-    player1 = players[player_id]
+@player_required
+def game(player1: FlaskPlayer):
     game = games[player1]
     player2 = game.players[0]
     if player1 is player2:
