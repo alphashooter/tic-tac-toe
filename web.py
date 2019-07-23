@@ -72,6 +72,7 @@ def player_required(func):
         if player is None:
             return redirect(url_for('index'))
         return func(player, **kwargs)
+    wrapper.__name__ = func.__name__
     return wrapper
 
 
@@ -116,13 +117,16 @@ def join_get(player: FlaskPlayer):
 
 
 @app.route("/game")
-@player_required
-def game(player1: FlaskPlayer):
-    game = games[player1]
-    player2 = game.players[0]
-    if player1 is player2:
-        player2 = game.players[1]
-    return render_template('game.html', player1=player1, player2=player2)
+# @player_required
+# def game(player: FlaskPlayer):
+def game():
+    from random import choice
+    # game = games[player]
+    game = Game(Player('Bob'), Player('Alice'))
+    for i in range(3):
+        for j in range(3):
+            game.grid[i][j] = choice([*game.players, None])
+    return render_template('game.html', player=game.players[0], game=game)
 
 
 app.run()
