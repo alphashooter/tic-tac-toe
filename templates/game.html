@@ -16,6 +16,11 @@
             height: 50px;
             border: #000000 solid 2px;
         }
+        .grid-input {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
         #content {
             display: flex;
             flex-direction: column;
@@ -24,27 +29,59 @@
             min-height: 100vh;
         }
     </style>
+    {% if game.current != player %}
     <script>
-
+        window.setTimeout(
+            function () {
+                const url = window.location.href;
+                window.location.href = url;
+            },
+            2500
+        );
     </script>
+    {% endif %}
 </head>
 <body>
     <div id="content">
+        {% if not game.finished %}
         <div>
-            {% for row in game.grid %}
+            {% if game.current == player %}
+            Your turn
+            {% else %}
+            {{ game.current.name }}'s turn
+            {% endif %}
+        </div>
+        {% endif %}
+        <div>
+            {% for row in range(3) %}
             <div class="grid-row">
-                {% for col in row %}
+                {% for col in range(3) %}
                 <div class="grid-cell">
-                    {% if game.players[0] == col %}
+                    {% if game.players[0] == game.grid[row][col] %}
                     <img src="/static/cross.svg"/>
-                    {% elif game.players[1] == col %}
+                    {% elif game.players[1] == game.grid[row][col] %}
                     <img src="/static/nought.svg"/>
+                    {% else %}
+                    {% if game.current == player %}
+                    <form class="grid-input" action="" method="post" onclick="this.submit()">
+                        <input name="cell" value="{{row}},{{col}}" type="hidden"/>
+                    </form>
+                    {% endif %}
                     {% endif %}
                 </div>
                 {% endfor %}
             </div>
             {% endfor %}
         </div>
+        {% if game.finished %}
+        <div>
+            {% if game.winner %}
+            {{ game.winner.name }} won!
+            {% else %}
+            ;(
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 </body>
 </html>

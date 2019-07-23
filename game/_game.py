@@ -36,13 +36,15 @@ def get_winner(grid) -> Optional[Player]:
         for i in range(1, 3):
             if grid[i][2 - i] is not player:
                 break
-            else:
-                return player
+        else:
+            return player
 
     return None
 
 
 class Game(object):
+    __id = 0
+
     __players: Tuple[Player, Player]
     __current: int
     __grid: List[List[Optional[Player]]]
@@ -50,11 +52,14 @@ class Game(object):
     __turns: int
 
     def __init__(self, player1: Player, player2: Player):
+        from time import time
         self.__players = player1, player2
         self.__current = 0
         self.__grid = [[None for i in range(3)] for j in range(3)]
         self.__winner = None
         self.__turns = 0
+        Game.__id += 1
+        self.__id = int(time()) + Game.__id
 
     def turn(self, player: Player, x: int, y: int):
         assert player is self.__players[self.__current]
@@ -88,3 +93,7 @@ class Game(object):
     @property
     def players(self):
         return self.__players
+
+    @property
+    def id(self):
+        return self.__id

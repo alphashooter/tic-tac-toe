@@ -14,7 +14,7 @@ class FlaskPlayer(Player):
         from time import time
         super().__init__(name)
         FlaskPlayer.__id += 1
-        self.__id = FlaskPlayer.__id
+        self.__id = (int(time()) << 8) | FlaskPlayer.__id
         self.__last_activity = time()
 
     def touch(self) -> None:
@@ -34,14 +34,17 @@ class FlaskPlayer(Player):
 
 
 players: Dict[int, FlaskPlayer] = {}
-games: Dict[FlaskPlayer, Game] = {}
+game_by_player: Dict[FlaskPlayer, Game] = {}
+game_by_id: Dict[int, Game] = {}
 queue: List[FlaskPlayer] = []
 
 
 def start_game(player1: FlaskPlayer, player2: FlaskPlayer):
     game = Game(player1, player2)
-    games[player1] = game
-    games[player2] = game
+    game_by_player[player1] = game
+    game_by_player[player2] = game
+    game_by_id[game.id] = game
+    return game
 
 
 def enqueue(new_player: FlaskPlayer):
@@ -51,10 +54,10 @@ def enqueue(new_player: FlaskPlayer):
             queue.pop(i)
     queue.append(new_player)
     if len(queue) == 2:
-        start_game(*queue)
+        game = start_game(*queue)
         queue.clear()
-        return True
-    return False
+        return game
+    return None
 
 
 def get_player() -> Optional[FlaskPlayer]:
@@ -67,17 +70,23 @@ def get_player() -> Optional[FlaskPlayer]:
 
 
 def player_required(func):
-    def wrapper(**kwargs):
+    def wrapper(*args, **kwargs):
         player = get_player()
         if player is None:
             return redirect(url_for('index'))
-        return func(player, **kwargs)
+        return func(player, *args, **kwargs)
     wrapper.__name__ = func.__name__
     return wrapper
 
 
 @app.route('/')
 def index():
+    player = get_player()
+    if player:
+        if player in game_by_player:
+            return redirect(url_for('game', game_id=game_by_player[player].id))
+        else:
+            return redirect(url_for('join'))
     return render_template("index.html")
 
 
@@ -98,8 +107,9 @@ def join_post():
     player = FlaskPlayer(name)
     players[player.id] = player
 
-    if enqueue(player):
-        response = redirect(url_for('game'))
+    game = enqueue(player)
+    if game:
+        response = redirect(url_for('game', game_id=game.id))
     else:
         response: Response = make_response(render_template('join.html'))
 
@@ -110,23 +120,42 @@ def join_post():
 @player_required
 def join_get(player: FlaskPlayer):
     player.touch()
-    if player in games:
-        return redirect(url_for('game'))
+    if player in game_by_player:
+        return redirect(url_for('game', game_id=game_by_player[player].id))
     else:
-        return render_template('join.html')
+        if player in queue:
+            return render_template('join.html')
+        else:
+            game = enqueue(player)
+            if game:
+                return redirect(url_for('game', game_id=game.id))
+            else:
+                return render_template('join.html')
 
 
-@app.route("/game")
-# @player_required
-# def game(player: FlaskPlayer):
-def game():
-    from random import choice
-    # game = games[player]
-    game = Game(Player('Bob'), Player('Alice'))
-    for i in range(3):
-        for j in range(3):
-            game.grid[i][j] = choice([*game.players, None])
-    return render_template('game.html', player=game.players[0], game=game)
+@app.route("/game/<int:game_id>", methods=['GET', 'POST'])
+def game(game_id):
+    if request.method == 'GET':
+        return game_get(game_id)
+    else:
+        return game_post(game_id)
 
 
-app.run()
+@player_required
+def game_get(player: FlaskPlayer, game_id: int):
+    game = game_by_id[game_id]
+    return render_template('game.html', player=player, game=game)
+
+
+@player_required
+def game_post(player: FlaskPlayer, game_id: int):
+    game = game_by_id[game_id]
+    row, col = map(int, request.form['cell'].split(','))
+    game.turn(player, col, row)
+    if game.finished:
+        del game_by_player[game.players[0]]
+        del game_by_player[game.players[1]]
+    return render_template('game.html', player=player, game=game)
+
+
+app.run(host='192.168.0.102')
