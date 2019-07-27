@@ -65,7 +65,7 @@ class WebSocket(object):
     def __repr__(self):
         return f'<WebSocket object at {hex(id(self))}>'
 
-    def accept(self, timeout: Optional[float] = None, validate: Optional[Callable[[str, Dict[str, str]], bool]] = None):
+    def accept(self, timeout: Optional[float] = None, validate: Optional[Callable[[...], bool]] = None) -> None:
         response = None
         error = None
 
@@ -147,7 +147,7 @@ class WebSocket(object):
 
         if response:
             try:
-                self.__client.send(response.encode())
+                self.__client.sendall(response.encode())
             except Exception as exc:
                 if not error:
                     error = exc
@@ -158,7 +158,18 @@ class WebSocket(object):
         else:
             Thread(target=self.__run).start()
 
+    def __send_all(self, data: Union[bytes, bytearray]) -> None:
+        self.__client.sendall(data)
+
+    def __recv_all(self, n: int) -> bytes:
+        data = b''
+        while len(data) < n:
+            data += self.__client.recv(n - len(data))
+        return data
+
     def __send_packet(self, opcode: int, data: Union[bytes, bytearray]) -> None:
+        self.__client.setblocking(True)
+
         header = bytearray()
         header.append(0x80 | opcode)
 
@@ -172,34 +183,36 @@ class WebSocket(object):
             header.append(127)
             header.extend(length.to_bytes(8, 'big'))
 
-        self.__client.send(header)
-        self.__client.send(data)
+        self.__send_all(header)
+        self.__send_all(data)
         logger.debug(
             f'{self} sent {len(data)} bytes, '
             f'FIN=1, '
             f'OPCODE=0x{opcode:02x} ({OPCODE_NAME.get(opcode, "unknown")})'
         )
 
-    def __recv_packet(self):
-        octet, = self.__client.recv(1)
+    def __recv_packet(self) -> Tuple[int, int, bytes]:
+        self.__client.setblocking(True)
+
+        octet, = self.__recv_all(1)
         fin = octet >> 7
         opcode = octet & 0x0F
 
-        octet, = self.__client.recv(1)
+        octet, = self.__recv_all(1)
         mask = octet >> 7
         length = octet & 0x7F
 
         if length == 126:
-            length = int.from_bytes(self.__client.recv(2), 'big')
+            length = int.from_bytes(self.__recv_all(2), 'big')
         elif length == 127:
-            length = int.from_bytes(self.__client.recv(8), 'big')
+            length = int.from_bytes(self.__recv_all(8), 'big')
 
         if mask:
-            key = self.__client.recv(4)
+            key = self.__recv_all(4)
         else:
             key = None
 
-        data = self.__client.recv(length)
+        data = self.__recv_all(length)
         if key:
             data = bytes(data[i] ^ key[i % 4] for i in range(len(data)))
 
