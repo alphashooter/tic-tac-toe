@@ -23,7 +23,7 @@ for i in range(3):
 ws.close()
 
 # from js console:
-# socket = new WebSocket('127.0.0.1:5001')
+# socket = new WebSocket('ws://127.0.0.1:5001')
 # socket.onmessage = console.log
 # socket.onclose = console.log
 # socket.send('hello!')

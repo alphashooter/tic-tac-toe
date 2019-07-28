@@ -2,7 +2,7 @@ class BadRequest(Exception):
     pass
 
 
-class UpgradeRequired(Exception):
+class NotFound(Exception):
     pass
 
 
@@ -11,4 +11,8 @@ class MethodNotAllowed(Exception):
 
 
 class RequestTimeout(Exception):
+    pass
+
+
+class UpgradeRequired(Exception):
     pass
