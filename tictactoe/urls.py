@@ -20,5 +20,6 @@ from webapp import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
-    path('hello/<name>', views.hello, name='hello')
+    path('join', views.join, name='join'),
+    path('game/<int:game_id>', views.game, name='game')
 ]

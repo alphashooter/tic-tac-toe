@@ -1,3 +1,4 @@
+{% load xrange %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -53,13 +54,13 @@
         </div>
         {% endif %}
         <div>
-            {% for row in range(3) %}
+            {% for row in 3|xrange %}
             <div class="grid-row">
-                {% for col in range(3) %}
+                {% for col in 3|xrange %}
                 <div class="grid-cell">
-                    {% if game.players[0] == game.grid[row][col] %}
+                    {% if game.players.0 == game.grid[row][col] %}
                     <img src="/static/cross.svg"/>
-                    {% elif game.players[1] == game.grid[row][col] %}
+                    {% elif game.players.1 == game.grid[row][col] %}
                     <img src="/static/nought.svg"/>
                     {% else %}
                     {% if game.current == player %}
