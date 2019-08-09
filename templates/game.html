@@ -1,4 +1,4 @@
-{% load xrange %}
+{% load utility %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -58,14 +58,15 @@
             <div class="grid-row">
                 {% for col in 3|xrange %}
                 <div class="grid-cell">
-                    {% if game.players.0 == game.grid[row][col] %}
+                    {% if game.players|getitem:0 == game.grid|getitem:row|getitem:col %}
                     <img src="/static/cross.svg"/>
-                    {% elif game.players.1 == game.grid[row][col] %}
+                    {% elif game.players|getitem:1 == game.grid|getitem:row|getitem:col %}
                     <img src="/static/nought.svg"/>
                     {% else %}
                     {% if game.current == player %}
                     <form class="grid-input" action="" method="post" onclick="this.submit()">
                         <input name="cell" value="{{row}},{{col}}" type="hidden"/>
+                        {% csrf_token %}
                     </form>
                     {% endif %}
                     {% endif %}

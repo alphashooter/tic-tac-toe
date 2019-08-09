@@ -80,7 +80,7 @@ def player_required(func):
     return wrapper
 
 
-def index(request):
+def index(request: HttpRequest):
     player = get_player(request)
     if player:
         if player in game_by_player:
@@ -132,7 +132,7 @@ def join_get(request: HttpRequest, player: FlaskPlayer):
                 return render(request, 'join.html')
 
 
-def game(request, game_id):
+def game(request: HttpRequest, game_id):
     if request.method == 'GET':
         return game_get(request, game_id)
     else:
@@ -146,9 +146,9 @@ def game_get(request, player: FlaskPlayer, game_id: int):
 
 
 @player_required
-def game_post(request, player: FlaskPlayer, game_id: int):
+def game_post(request: HttpRequest, player: FlaskPlayer, game_id: int):
     game = game_by_id[game_id]
-    row, col = map(int, request.form['cell'].split(','))
+    row, col = map(int, request.POST['cell'].split(','))
     game.turn(player, col, row)
     if game.finished:
         del game_by_player[game.players[0]]
